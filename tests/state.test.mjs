@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -12,7 +13,7 @@ import {
   upsertJob,
   writeJobFile,
 } from "../plugins/kimi/scripts/lib/state.mjs";
-import { makeTempDir } from "./helpers.mjs";
+import { REPO_ROOT, makeTempDir } from "./helpers.mjs";
 
 test("state round-trips jobs and config", () => {
   const dir = makeTempDir();
@@ -69,4 +70,70 @@ test("generateJobId produces prefixed unique ids", () => {
   const b = generateJobId("task");
   assert.match(a, /^task-[a-z0-9]+-[a-f0-9]{6}$/);
   assert.notEqual(a, b);
+});
+
+const STATE_MODULE = path.join(REPO_ROOT, "plugins", "kimi", "scripts", "lib", "state.mjs");
+
+function runNode(args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, args, { encoding: "utf8" });
+    let stderr = "";
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (status) => resolve({ status, stderr }));
+  });
+}
+
+test("concurrent upsertJob from many processes keeps every job", async () => {
+  const dir = makeTempDir();
+  const scriptDir = makeTempDir();
+  const childScript = path.join(scriptDir, "upsert-child.mjs");
+  fs.writeFileSync(
+    childScript,
+    [
+      'import { pathToFileURL } from "node:url";',
+      "const [modulePath, stateDir, jobId, startAt] = process.argv.slice(2);",
+      "const { upsertJob } = await import(pathToFileURL(modulePath).href);",
+      "while (Date.now() < Number(startAt)) {}",
+      'upsertJob(stateDir, { id: jobId, status: "done", updatedAt: new Date().toISOString() });',
+      "",
+    ].join("\n"),
+  );
+  // Release all children at the same instant to maximize contention.
+  const startAt = Date.now() + 1500;
+  const jobIds = Array.from({ length: 8 }, (_, i) => `job-${i}`);
+  const results = await Promise.all(
+    jobIds.map((jobId) => runNode([childScript, STATE_MODULE, dir, jobId, String(startAt)])),
+  );
+  for (const result of results) {
+    assert.equal(result.status, 0, result.stderr);
+  }
+  const state = loadState(dir);
+  assert.deepEqual(
+    state.jobs.map((job) => job.id).sort(),
+    [...jobIds].sort(),
+  );
+});
+
+test("upsertJob takes over a stale lock", () => {
+  const dir = makeTempDir();
+  const lockDir = path.join(dir, "state.lock");
+  fs.mkdirSync(lockDir);
+  const old = new Date(Date.now() - 60000);
+  fs.utimesSync(lockDir, old, old);
+  upsertJob(dir, { id: "job-1", status: "queued", updatedAt: "2026-01-01T00:00:00Z" });
+  assert.equal(loadState(dir).jobs.length, 1);
+  assert.equal(fs.existsSync(lockDir), false);
+});
+
+test("saveState and writeJobFile leave no temp files behind", () => {
+  const dir = makeTempDir();
+  const state = loadState(dir);
+  state.jobs.push({ id: "job-1", updatedAt: "2026-01-01T00:00:00Z" });
+  saveState(dir, state);
+  writeJobFile(dir, { id: "job-1", status: "done" });
+  const names = fs.readdirSync(dir).concat(fs.readdirSync(path.join(dir, "jobs")));
+  assert.deepEqual(names.filter((name) => name.endsWith(".tmp")), []);
 });

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Job state writes are now atomic (temp file + rename) and concurrent state updates are serialized with a stale-safe directory lock, fixing lost job summaries when background tasks, cancels, and hooks race.
+
 ## [0.1.0] - 2026-07-17
 
 Initial release. Use Kimi from Claude Code for code review and task delegation.
