@@ -20,7 +20,7 @@ This plugin is for Claude Code users who want an easy way to start using Kimi Co
 Add the marketplace in Claude Code:
 
 ```bash
-/plugin marketplace add <path-or-git-url-of-this-repo>
+/plugin marketplace add aeieli/kimi-cc
 ```
 
 Install the plugin:

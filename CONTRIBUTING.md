@@ -25,8 +25,8 @@ scripts/bump-version.mjs             # version management across manifests
 Requirements: Node.js >= 18.18 and (for real end-to-end runs) the [Kimi Code CLI](https://www.kimi.com/code/docs/en/) installed and authenticated.
 
 ```bash
-git clone <this repo>
-cd kimi-plugin-cc
+git clone https://github.com/aeieli/kimi-cc.git
+cd kimi-cc
 npm ci
 npm test
 ```
