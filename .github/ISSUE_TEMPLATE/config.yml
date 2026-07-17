@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Kimi Code documentation
+    url: https://www.kimi.com/code/docs/en/
+    about: Product docs for the Kimi Code CLI (install, login, configuration).
+  - name: Claude Code plugin docs
+    url: https://docs.claude.com/en/docs/claude-code/plugins
+    about: How Claude Code plugins, marketplaces, commands, and hooks work.

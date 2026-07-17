@@ -1,0 +1,11 @@
+kimi-plugin-cc
+Copyright 2026 Moonshot AI
+
+This product includes software adapted from codex-plugin-cc
+(https://github.com/openai/codex-plugin-cc), Copyright OpenAI,
+licensed under the Apache License, Version 2.0.
+
+The plugin architecture, command/hook layout, review output schema, and
+state-management design were adapted from codex-plugin-cc; the runtime
+integration targets the Kimi Code CLI (`kimi -p` with stream-json output)
+instead of the Codex app server.

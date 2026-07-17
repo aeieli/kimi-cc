@@ -1,0 +1,65 @@
+name: Bug Report
+description: Report a problem with the Kimi plugin for Claude Code
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out as much as you can.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: I ran /kimi:review and ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands and minimal setup that reproduce the problem.
+      placeholder: |
+        1. In a git repo with uncommitted changes, run ...
+        2. ...
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Plugin command involved
+      description: Which slash command or hook was involved, if any.
+      placeholder: /kimi:rescue
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node.js version (`node --version`), Kimi Code CLI version (`kimi --version`), Claude Code version, plugin version.
+      placeholder: |
+        - OS: macOS 15.5
+        - Node.js: 20.19.4
+        - Kimi CLI: 0.26.0
+        - Claude Code: 
+        - Plugin: 0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output or logs
+      description: Paste companion output, job logs from the plugin state dir, or hook stderr. Redact any secrets.
+      render: text
+
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Redaction check
+      description: Confirm you removed API keys, tokens, and private code from anything you pasted.
+      options:
+        - label: I have redacted secrets and private data from the report.
+          required: true
